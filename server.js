@@ -40,8 +40,8 @@ function emitGroupsToUser(username) {
     socketIds.forEach((socketId) => { io.to(socketId).emit("groups-list", list); });
 }
 
-// --- Логика Socket.io ---
 io.on("connection", (socket) => {
+    // Регистрация
     socket.on("register", ({ username }, callback) => {
         const trimmed = (username || "").trim();
         if (!trimmed) return callback({ ok: false, error: "Введите имя пользователя" });
@@ -54,11 +54,11 @@ io.on("connection", (socket) => {
         emitGroupsToUser(trimmed);
     });
 
+    // Личные сообщения
     socket.on("send-direct", ({ to, text }, callback) => {
         const from = socketUser.get(socket.id);
-        const msg = (text || "").trim();
-        if (!from || !to || !msg) return callback({ ok: false, error: "Ошибка данных" });
-        const payload = { id: Date.now(), from, to, text: msg, time: new Date().toISOString() };
+        if (!from || !to || !text) return callback({ ok: false, error: "Ошибка данных" });
+        const payload = { id: Date.now(), from, to, text, time: new Date().toISOString() };
         const key = directKey(from, to);
         if (!directMessages.has(key)) directMessages.set(key, []);
         directMessages.get(key).push(payload);
@@ -67,10 +67,44 @@ io.on("connection", (socket) => {
         callback({ ok: true });
     });
 
+    // --- ВОТ ЭТОГО БЛОКА У ТЕБЯ НЕ ХВАТАЛО: ---
+    socket.on("create-group", ({ name, members }, callback) => {
+        const creator = socketUser.get(socket.id);
+        if (!creator) return callback({ ok: false, error: "Не авторизован" });
+        if (!name) return callback({ ok: false, error: "Введите название группы" });
+
+        const groupId = "g-" + Date.now();
+        const finalMembers = Array.from(new Set([creator, ...members]));
+        const group = { id: groupId, name, members: finalMembers };
+
+        groups.set(groupId, group);
+        groupMessages.set(groupId, []);
+
+        finalMembers.forEach(user => emitGroupsToUser(user));
+        callback({ ok: true, group });
+    });
+
+    socket.on("group-history", ({ groupId }, callback) => {
+        callback(groupMessages.get(groupId) || []);
+    });
+
+    socket.on("send-group", ({ groupId, text }, callback) => {
+        const from = socketUser.get(socket.id);
+        if (!from || !groupId || !text) return callback({ ok: false });
+        const payload = { id: Date.now(), from, groupId, text, time: new Date().toISOString() };
+        groupMessages.get(groupId).push(payload);
+        const group = groups.get(groupId);
+        if (group) {
+            group.members.forEach(m => {
+                (userSocketIds.get(m) || []).forEach(sid => io.to(sid).emit("group-message", payload));
+            });
+        }
+        callback({ ok: true });
+    });
+
     socket.on("disconnect", () => {
         const username = socketUser.get(socket.id);
         if (!username) return;
-        socketUser.delete(socket.id);
         const ids = userSocketIds.get(username);
         if (ids) {
             ids.delete(socket.id);
@@ -81,7 +115,6 @@ io.on("connection", (socket) => {
             }
         }
     });
-    // Тут можно добавить остальные ваши обработчики (create-group и т.д.)
 });
 
 // --- ЗАПУСК (исправлено для Render) ---
