@@ -4,11 +4,23 @@ const http = require("http");
 const { Server } = require("socket.io");
 
 const app = express();
+
+// 1. Раздаем статические файлы (CSS, JS, картинки)
+app.use(express.static(__dirname));
+
+// 2. Исправленный обработчик главной страницы
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
+
 const server = http.createServer(app);
 const io = new Server(server);
 
+// Не забудьте про порт в конце файла!
 const PORT = process.env.PORT || 3000;
-const HOST = process.env.HOST || "0.0.0.0";
+server.listen(PORT, () => {
+    console.log(`Сервер запущен на порту ${PORT}`);
+});
 
 const activeUsers = new Set();
 const userSocketIds = new Map();
