@@ -1,0 +1,60 @@
+﻿<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WhatsApp MVP</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div id="login" class="card">
+    <h1>WhatsApp MVP</h1>
+    <p>Вход в чат</p>
+    <input id="usernameInput" type="text" placeholder="Имя пользователя" maxlength="24" />
+    <button id="loginBtn">Войти</button>
+    <p id="loginError" class="error"></p>
+  </div>
+
+  <div id="app" class="hidden">
+    <aside class="sidebar">
+      <div class="section">
+        <h2>Онлайн</h2>
+        <ul id="usersList"></ul>
+      </div>
+      <div class="section">
+        <div class="groupHeader">
+          <h2>Группы</h2>
+          <button id="newGroupBtn" class="small">+ Группа</button>
+        </div>
+        <ul id="groupsList"></ul>
+      </div>
+    </aside>
+
+    <main class="chat">
+      <header id="chatTitle">Выбери чат</header>
+      <div id="messages" class="messages"></div>
+      <form id="messageForm" class="composer">
+        <input id="messageInput" type="text" placeholder="Введите сообщение" autocomplete="off" />
+        <button type="submit">Отправить</button>
+      </form>
+    </main>
+  </div>
+
+  <div id="modal" class="modal hidden">
+    <div class="modalBody card">
+      <h3>Новая группа</h3>
+      <input id="groupNameInput" type="text" placeholder="Название группы" />
+      <p>Выберите участников (онлайн):</p>
+      <div id="groupMembers" class="memberList"></div>
+      <div class="modalActions">
+        <button id="createGroupBtn">Создать</button>
+        <button id="cancelGroupBtn" class="ghost">Отмена</button>
+      </div>
+      <p id="groupError" class="error"></p>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/app.js"></script>
+</body>
+</html>
