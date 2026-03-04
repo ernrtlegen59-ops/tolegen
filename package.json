@@ -1,0 +1,17 @@
+{
+  "name": "whatsapp-mvp",
+  "version": "1.0.0",
+  "description": "Simple WhatsApp-style chat MVP with direct and group chats",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.22.1",
+    "socket.io": "^4.8.1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}
